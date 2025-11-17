@@ -1,0 +1,19 @@
+# Composer
+composer.phar
+/composer.lock
+/vendor/
+
+# IDEs
+/.idea/
+/.vscode/
+
+# Coverage
+/coverage/
+/phpunit.xml.cache
+/.phpunit.result.cache
+/.phpunit.cache
+/infection.log
+
+# OS files
+.DS_Store
+Thumbs.db

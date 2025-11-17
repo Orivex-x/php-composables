@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist --no-interaction
+
+      - name: Run Tests
+        run: vendor/bin/phpunit --configuration phpunit.xml --testdox
+
+      - name: Validate composer.json
+        run: composer validate --no-check-publish
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            See CHANGELOG.md for details.
+          draft: false
+          prerelease: false
+
+      - name: Publish to Packagist
+        uses: php-pkg/publish-action@v2
+        with:
+          user: ${{ secrets.PACKAGIST_USERNAME }}
+          token: ${{ secrets.PACKAGIST_API_TOKEN }}
