@@ -1,10 +1,12 @@
 <?php
+
 namespace PhpComposables;
 
 use PhpComposables\Exceptions\ModuleEventDispatcherException;
 use Throwable;
 
-class ModuleEventDispatcher {
+class ModuleEventDispatcher
+{
     /** @var array<string, callable[]> $listeners Array of registered event listeners */
     private static array $listeners = [];
 
@@ -24,7 +26,8 @@ class ModuleEventDispatcher {
      * @return void
      * @throws ModuleEventDispatcherException
      */
-    public static function listen(string $event, mixed $listener): void {
+    public static function listen(string $event, mixed $listener): void
+    {
         if (!is_callable($listener)) {
             throw new ModuleEventDispatcherException("Listener not callable for event '$event'.", $event);
         }
@@ -40,7 +43,8 @@ class ModuleEventDispatcher {
      * @return void
      * @throws ModuleEventDispatcherException
      */
-    public static function dispatch(string $event, array $payload = []): void {
+    public static function dispatch(string $event, array $payload = []): void
+    {
         foreach (self::$listeners[$event] ?? [] as $listener) {
             try {
                 $listener($payload);

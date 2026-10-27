@@ -1,11 +1,13 @@
 <?php
+
 namespace PhpComposables;
 
 use PhpComposables\Exceptions\ModuleException;
 use PhpComposables\Exceptions\ModuleSchemaException;
 use Throwable;
 
-class Module {
+class Module
+{
     public string $name;
     public string $version;
 
@@ -34,7 +36,8 @@ class Module {
      * @param string $name
      * @param string $version
      */
-    public function __construct(string $name, string $version = "1.0.0") {
+    public function __construct(string $name, string $version = "1.0.0")
+    {
         $this->name = $name;
         $this->version = $version;
         $this->schema = new ModuleSchema($name);
@@ -47,7 +50,8 @@ class Module {
      * @param string $version
      * @return self
      */
-    public static function create(string $name, string $version = "1.0.0"): self {
+    public static function create(string $name, string $version = "1.0.0"): self
+    {
         return new self($name, $version);
     }
 
@@ -58,7 +62,8 @@ class Module {
      * @param string $type
      * @return $this
      */
-    public function declareInput(string $name, string $type): static {
+    public function declareInput(string $name, string $type): static
+    {
         $this->schema->declareInput($name, $type);
 
         return $this;
@@ -71,7 +76,8 @@ class Module {
      * @param string $type
      * @return $this
      */
-    public function declareOutput(string $name, string $type): static {
+    public function declareOutput(string $name, string $type): static
+    {
         $this->schema->declareOutput($name, $type);
 
         return $this;
@@ -83,7 +89,8 @@ class Module {
      * @param string $moduleName
      * @return $this
      */
-    public function declareDependency(string $moduleName): static {
+    public function declareDependency(string $moduleName): static
+    {
         $this->dependencies[] = $moduleName;
 
         return $this;
@@ -95,7 +102,8 @@ class Module {
      * @param callable $logic
      * @return $this
      */
-    public function setLogic(callable $logic): static {
+    public function setLogic(callable $logic): static
+    {
         $this->logic = $logic;
 
         return $this;
@@ -108,7 +116,8 @@ class Module {
      * @param callable $hook
      * @return $this
      */
-    public function onOutput(string $outputName, callable $hook): static {
+    public function onOutput(string $outputName, callable $hook): static
+    {
         $this->hooks[$outputName][] = $hook;
 
         return $this;
@@ -122,7 +131,8 @@ class Module {
      * @param Module|string $targetModule
      * @return $this
      */
-    public function branchOutput(string $outputName, callable $condition, Module|string $targetModule): static {
+    public function branchOutput(string $outputName, callable $condition, Module|string $targetModule): static
+    {
         $this->branches[$outputName][] = ["condition" => $condition, "module" => $targetModule];
         return $this;
     }
@@ -132,7 +142,8 @@ class Module {
      *
      * @return $this
      */
-    public function register(): static {
+    public function register(): static
+    {
         ModuleRegistry::register($this);
 
         return $this;
@@ -145,7 +156,8 @@ class Module {
      * @return array<string, mixed>
      * @throws ModuleException
      */
-    public function run(array $inputs): array {
+    public function run(array $inputs): array
+    {
         try {
             ModuleEventDispatcher::dispatch(
                 ModuleEventDispatcher::EVENT_MODULE_RUN_START,
@@ -211,7 +223,6 @@ class Module {
             );
 
             return $result;
-
         } catch (ModuleSchemaException $e) {
             throw new ModuleException("Schema validation failed: {$e->getMessage()}", $this->name, 0, $e);
         } catch (ModuleException $e) {
@@ -238,7 +249,8 @@ class Module {
      *
      * @return ModuleSchema
      */
-    public function getSchema(): ModuleSchema {
+    public function getSchema(): ModuleSchema
+    {
         return $this->schema;
     }
 }

@@ -1,11 +1,13 @@
 <?php
+
 namespace PhpComposables;
 
 use PhpComposables\Exceptions\ModuleAsyncQueueException;
 use PhpComposables\Exceptions\ModuleEventDispatcherException;
 use Throwable;
 
-class ModuleAsyncQueue {
+class ModuleAsyncQueue
+{
     /**
      * @var array<array{
      *     callback: callable,
@@ -29,7 +31,8 @@ class ModuleAsyncQueue {
      * @return void
      * @throws ModuleEventDispatcherException
      */
-    public static function enqueue(callable $callback, mixed $data = null, ModuleSchema|null $schema = null, string $type = "hook"): void {
+    public static function enqueue(callable $callback, mixed $data = null, ModuleSchema|null $schema = null, string $type = "hook"): void
+    {
         self::$queue[] = [
             "callback" => $callback,
             "data" => $data,
@@ -52,7 +55,8 @@ class ModuleAsyncQueue {
      * @throws ModuleAsyncQueueException
      * @throws ModuleEventDispatcherException
      */
-    public static function run(): void {
+    public static function run(): void
+    {
         if (self::$running) {
             return;
         }
@@ -100,7 +104,6 @@ class ModuleAsyncQueue {
                         // Execute the module callback
                         ($item["callback"])($item["data"]);
                     }
-
                 } catch (Throwable $e) {
                     ModuleEventDispatcher::dispatch("queue.error", ["error" => $e]);
                     self::clear();
@@ -135,7 +138,8 @@ class ModuleAsyncQueue {
      *     type: string
      * }>
      */
-    public static function getQueue(): array {
+    public static function getQueue(): array
+    {
         return self::$queue;
     }
 
@@ -144,7 +148,8 @@ class ModuleAsyncQueue {
      *
      * @return void
      */
-    public static function clear(): void {
+    public static function clear(): void
+    {
         self::$queue = [];
     }
 }

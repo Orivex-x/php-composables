@@ -1,4 +1,5 @@
 <?php
+
 namespace PhpComposables\Tests;
 
 use PhpComposables\Exceptions\ModuleAsyncQueueException;
@@ -63,7 +64,7 @@ class ModuleTest extends TestCase
                     return ["value" => $inputs["value"] + 1];
                 }
             )
-            ->onOutput("value", function(int $v) use (&$hookCalled) {
+            ->onOutput("value", function (int $v) use (&$hookCalled) {
                 $hookCalled = $v;
             });
 
@@ -126,7 +127,7 @@ class ModuleTest extends TestCase
                     return ["num" => $inputs["num"] * 2];
                 }
             )
-            ->onOutput("num", function(int $v) use (&$hookExecuted) {
+            ->onOutput("num", function (int $v) use (&$hookExecuted) {
                 $hookExecuted = $v;
             });
 
@@ -189,7 +190,7 @@ class ModuleTest extends TestCase
                     return ["val" => $inputs["val"] + 1];
                 }
             )
-            ->onOutput("val", function(int $v) use (&$results) {
+            ->onOutput("val", function (int $v) use (&$results) {
                 $results[] = "M1:$v";
             });
 
@@ -203,7 +204,7 @@ class ModuleTest extends TestCase
                     return ["val" => $inputs["val"] * 2];
                 }
             )
-            ->onOutput("val", function(int $v) use (&$results) {
+            ->onOutput("val", function (int $v) use (&$results) {
                 $results[] = "M2:$v";
             });
 

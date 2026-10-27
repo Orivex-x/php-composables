@@ -1,4 +1,5 @@
 <?php
+
 namespace PhpComposables;
 
 use PhpComposables\Exceptions\ModuleSchemaException;
@@ -109,7 +110,7 @@ class ModuleSchema
      */
     protected function validateType(mixed $value, string $type): bool
     {
-        return match(strtolower($type)) {
+        return match (strtolower($type)) {
             "string" => is_string($value),
             "int", "integer" => is_int($value),
             "float", "double" => is_float($value),

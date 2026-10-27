@@ -1,4 +1,5 @@
 <?php
+
 namespace PhpComposables;
 
 use PhpComposables\Exceptions\ModuleAsyncQueueException;
@@ -7,7 +8,8 @@ use PhpComposables\Exceptions\ModuleException;
 use PhpComposables\Exceptions\ModulePipelineException;
 use Exception;
 
-class ModulePipeline {
+class ModulePipeline
+{
     /**
      * @var Module[] Array of modules in the pipeline
      */
@@ -32,7 +34,8 @@ class ModulePipeline {
     /**
      * @param Module[] $modules Array of Module instances to compose the pipeline
      */
-    public function __construct(array $modules) {
+    public function __construct(array $modules)
+    {
         $this->modules = $modules;
     }
 
@@ -42,7 +45,8 @@ class ModulePipeline {
      * @param Module[] $modules Array of Module instances
      * @return self
      */
-    public static function compose(array $modules): self {
+    public static function compose(array $modules): self
+    {
         return new self($modules);
     }
 
@@ -53,7 +57,8 @@ class ModulePipeline {
      * @param string $version
      * @return $this
      */
-    public function setModuleVersion(string $moduleName, string $version): self {
+    public function setModuleVersion(string $moduleName, string $version): self
+    {
         $this->moduleVersions[$moduleName] = $version;
         return $this;
     }
@@ -64,7 +69,8 @@ class ModulePipeline {
      * @param bool $enabled
      * @return $this
      */
-    public function setAsync(bool $enabled = true): self {
+    public function setAsync(bool $enabled = true): self
+    {
         $this->pipelineAsync = $enabled;
         return $this;
     }
@@ -76,9 +82,12 @@ class ModulePipeline {
      * @throws ModulePipelineException
      * @return Module
      */
-    private function findModuleByName(string $name): Module {
+    private function findModuleByName(string $name): Module
+    {
         foreach ($this->modules as $m) {
-            if ($m->name === $name) return $m;
+            if ($m->name === $name) {
+                return $m;
+            }
         }
 
         throw new ModulePipelineException("Module '$name' not found in pipeline modules.");
@@ -90,11 +99,12 @@ class ModulePipeline {
      * @return Module[] Array of modules in the resolved execution order
      * @throws ModulePipelineException
      */
-    private function resolveOrder(): array {
+    private function resolveOrder(): array
+    {
         $order = [];
         $visited = [];
 
-        $visit = function(Module $module) use (&$visit, &$order, &$visited) {
+        $visit = function (Module $module) use (&$visit, &$order, &$visited) {
             if (isset($visited[$module->name])) {
                 return;
             }
@@ -122,7 +132,8 @@ class ModulePipeline {
      * @param string $moduleName
      * @return bool
      */
-    public static function isExecuted(string $moduleName): bool {
+    public static function isExecuted(string $moduleName): bool
+    {
         return isset(self::$executedGlobal[$moduleName]);
     }
 
@@ -132,7 +143,8 @@ class ModulePipeline {
      * @param string $moduleName
      * @return void
      */
-    public static function markExecuted(string $moduleName): void {
+    public static function markExecuted(string $moduleName): void
+    {
         self::$executedGlobal[$moduleName] = true;
     }
 
@@ -146,7 +158,8 @@ class ModulePipeline {
      * @throws ModuleEventDispatcherException
      * @throws ModulePipelineException
      */
-    public function run(array $inputs): array {
+    public function run(array $inputs): array
+    {
         self::$executedGlobal = [];
 
         $data = $inputs;

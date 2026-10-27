@@ -1,4 +1,5 @@
 <?php
+
 namespace PhpComposables\Tests;
 
 use PhpComposables\Exceptions\ModuleAsyncQueueException;
@@ -72,7 +73,7 @@ class ModulePipelineTest extends TestCase
                     return ["val" => $inputs["val"] + 1];
                 }
             )
-            ->onOutput("val", function(int $v) use (&$results) {
+            ->onOutput("val", function (int $v) use (&$results) {
                 $results[] = "M1:$v";
             })
             ->register();
@@ -87,7 +88,7 @@ class ModulePipelineTest extends TestCase
                     return ["val" => $inputs["val"] * 2];
                 }
             )
-            ->onOutput("val", function(int $v) use (&$results) {
+            ->onOutput("val", function (int $v) use (&$results) {
                 $results[] = "M2:$v";
             })
             ->register();
@@ -120,7 +121,7 @@ class ModulePipelineTest extends TestCase
                     return ["num" => $inputs["num"] + 1];
                 }
             )
-            ->onOutput("num", function($v) use (&$hookResult) {
+            ->onOutput("num", function ($v) use (&$hookResult) {
                 $hookResult[] = $v;
             })
             ->register();
@@ -181,7 +182,7 @@ class ModulePipelineTest extends TestCase
                     return ["val" => $inputs["val"] + 1];
                 }
             )
-            ->onOutput("val", function(int $v) use (&$results) {
+            ->onOutput("val", function (int $v) use (&$results) {
                 $results[] = "A:$v";
             })
             ->register();
@@ -196,7 +197,7 @@ class ModulePipelineTest extends TestCase
                     return ["val" => $inputs["val"] * 3];
                 }
             )
-            ->onOutput("val", function(int $v) use (&$results) {
+            ->onOutput("val", function (int $v) use (&$results) {
                 $results[] = "B:$v";
             })
             ->register();
@@ -211,7 +212,7 @@ class ModulePipelineTest extends TestCase
                     return ["val" => $inputs["val"] - 2];
                 }
             )
-            ->onOutput("val", function(int $v) use (&$results) {
+            ->onOutput("val", function (int $v) use (&$results) {
                 $results[] = "C:$v";
             })
             ->register();

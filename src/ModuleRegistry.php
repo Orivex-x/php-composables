@@ -1,4 +1,5 @@
 <?php
+
 namespace PhpComposables;
 
 use PhpComposables\Exceptions\ModuleRegistryException;
@@ -11,7 +12,8 @@ use PhpComposables\Exceptions\ModuleRegistryException;
  *
  * @package php-composables
  */
-class ModuleRegistry {
+class ModuleRegistry
+{
     /** @var array<string, array<string, Module>> Stores modules indexed by name and version. */
     protected static array $modules = [];
 
@@ -54,7 +56,7 @@ class ModuleRegistry {
             return $module;
         }
 
-        usort($versions, function($a, $b) {
+        usort($versions, function ($a, $b) {
             return version_compare($a->version, $b->version);
         });
 

@@ -1,4 +1,5 @@
 <?php
+
 namespace PhpComposables\Tests;
 
 use Exception;
@@ -52,13 +53,13 @@ class ModuleEventDispatcherTest extends TestCase
     {
         $warnings = [];
 
-        set_error_handler(function(int $errno, string $errStr, string $errFile, int $errLine) use (&$warnings): bool {
+        set_error_handler(function (int $errno, string $errStr, string $errFile, int $errLine) use (&$warnings): bool {
             $warnings[] = $errStr;
 
             return false; // Don't suppress the error
         });
 
-        ModuleEventDispatcher::listen("error.event", function() {
+        ModuleEventDispatcher::listen("error.event", function () {
             throw new Exception("Listener failure");
         });
 
@@ -76,7 +77,7 @@ class ModuleEventDispatcherTest extends TestCase
     {
         ModuleEventDispatcher::$throwOnListenerError = true;
 
-        ModuleEventDispatcher::listen("throw.event", function() {
+        ModuleEventDispatcher::listen("throw.event", function () {
             throw new Exception("Listener failure");
         });
 

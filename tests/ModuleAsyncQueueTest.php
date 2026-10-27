@@ -1,4 +1,5 @@
 <?php
+
 namespace PhpComposables\Tests;
 
 use Exception;
@@ -30,7 +31,7 @@ class ModuleAsyncQueueTest extends TestCase
     {
         $called = false;
 
-        ModuleAsyncQueue::enqueue(function($data) use (&$called) {
+        ModuleAsyncQueue::enqueue(function ($data) use (&$called) {
             $called = $data;
         }, true);
 
@@ -82,7 +83,7 @@ class ModuleAsyncQueueTest extends TestCase
         $schema = new ModuleSchema("FailModule");
         $schema->declareOutput("val", "int");
 
-        ModuleAsyncQueue::enqueue(function() {
+        ModuleAsyncQueue::enqueue(function () {
             return ["val" => "wrong_type"];
         }, ["val" => "wrong_type"], $schema, "module");
 
@@ -98,14 +99,14 @@ class ModuleAsyncQueueTest extends TestCase
     {
         $warnings = [];
 
-        set_error_handler(function(int $errno, string $errStr, string $errFile, int $errLine) use (&$warnings): bool {
+        set_error_handler(function (int $errno, string $errStr, string $errFile, int $errLine) use (&$warnings): bool {
             $warnings[] = $errStr;
 
             return false; // Don't suppress the error
         });
 
         // Enqueue a hook that throws an exception
-        ModuleAsyncQueue::enqueue(function() {
+        ModuleAsyncQueue::enqueue(function () {
             throw new Exception("hook failure");
         });
 
@@ -122,7 +123,8 @@ class ModuleAsyncQueueTest extends TestCase
      */
     public function testClearEmptiesQueue(): void
     {
-        ModuleAsyncQueue::enqueue(function() {});
+        ModuleAsyncQueue::enqueue(function () {
+        });
 
         $this->assertNotEmpty(ModuleAsyncQueue::getQueue());
 

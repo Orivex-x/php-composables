@@ -1,4 +1,5 @@
 <?php
+
 namespace PhpComposables\Tests;
 
 use PhpComposables\Module;

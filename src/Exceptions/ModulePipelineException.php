@@ -1,4 +1,5 @@
 <?php
+
 namespace PhpComposables\Exceptions;
 
 use Exception;
@@ -20,7 +21,8 @@ class ModulePipelineException extends Exception
      * @param int $code
      * @param Throwable|null $previous
      */
-    public function __construct(string $message, string|null $context = null, int $code = 0, Throwable|null $previous = null) {
+    public function __construct(string $message, string|null $context = null, int $code = 0, Throwable|null $previous = null)
+    {
         $this->context = $context;
 
         parent::__construct($message, $code, $previous);
