@@ -19,7 +19,7 @@ class ModuleRegistryTest extends TestCase
         $ref = new ReflectionClass(ModuleRegistry::class);
         $prop = $ref->getProperty("modules");
         $prop->setAccessible(true);
-        $prop->setValue([]);
+        $prop->setValue(null, []);
     }
 
     /**
@@ -28,7 +28,7 @@ class ModuleRegistryTest extends TestCase
      */
     public function testRegisterAndRetrieveModule(): void
     {
-        $module = Module::create("User", "1.0.0")
+        $module = Module::create("User")
             ->declareInput("name", "string")
             ->declareOutput("greeting", "string");
 
@@ -47,7 +47,7 @@ class ModuleRegistryTest extends TestCase
      */
     public function testRetrieveLatestVersion(): void
     {
-        $v1 = Module::create("User", "1.0.0");
+        $v1 = Module::create("User");
         $v2 = Module::create("User", "1.2.0");
 
         ModuleRegistry::register($v1);
@@ -74,7 +74,7 @@ class ModuleRegistryTest extends TestCase
      */
     public function testRetrieveNonexistentVersionThrowsException(): void
     {
-        $module = Module::create("User", "1.0.0");
+        $module = Module::create("User");
         ModuleRegistry::register($module);
 
         $this->expectException(ModuleRegistryException::class);
@@ -87,8 +87,8 @@ class ModuleRegistryTest extends TestCase
      */
     public function testMultipleModulesDifferentNames(): void
     {
-        $userModule = Module::create("User", "1.0.0");
-        $authModule = Module::create("Auth", "1.0.0");
+        $userModule = Module::create("User");
+        $authModule = Module::create("Auth");
 
         ModuleRegistry::register($userModule);
         ModuleRegistry::register($authModule);

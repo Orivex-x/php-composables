@@ -5,11 +5,15 @@ namespace PhpComposables\Tests;
 use PhpComposables\Exceptions\ModuleAsyncQueueException;
 use PhpComposables\Exceptions\ModuleEventDispatcherException;
 use PhpComposables\Exceptions\ModulePipelineException;
+use PhpComposables\Exceptions\ModuleRegistryException;
 use PhpComposables\Module;
+use PhpComposables\ModuleRegistry;
+use PhpComposables\Exceptions\ModuleSchemaException;
 use PhpComposables\ModulePipeline;
 use PhpComposables\ModuleAsyncQueue;
 use PhpComposables\Exceptions\ModuleException;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 class ModuleTest extends TestCase
 {
@@ -213,5 +217,129 @@ class ModuleTest extends TestCase
 
         $this->assertEquals(["M1:4", "M2:8"], $results);
         $this->assertEquals(8, $final["val"]);
+    }
+
+    /**
+     * @return void
+     * @throws ModuleRegistryException
+     */
+    public function testRegisterAddsModuleToRegistry(): void
+    {
+        $module = Module::create("RegistrationTest", "1.0.0");
+
+        $returned = $module->register();
+
+        $this->assertSame($module, $returned);
+        $this->assertSame($module, ModuleRegistry::get("RegistrationTest"));
+    }
+
+    /**
+     * @return void
+     */
+    public function testSchemaExceptionIsWrappedInModuleException(): void
+    {
+        $module = Module::create("SchemaExceptionTest")
+            ->declareInput("number", "int")
+            ->declareOutput("result", "string")
+            ->setLogic(fn (array $inputs): array => ["result" => 123]);
+
+        try {
+            $module->run(["number" => 1]);
+            $this->fail("Expected ModuleException was not thrown.");
+        } catch (ModuleException $exception) {
+            $this->assertStringContainsString(
+                "Schema validation failed",
+                $exception->getMessage()
+            );
+
+            $this->assertInstanceOf(
+                ModuleSchemaException::class,
+                $exception->getPrevious()
+            );
+        }
+    }
+
+    /**
+     * @return void
+     * @throws ModuleException
+     */
+    public function testRunReturnsEmptyArrayAndWarnsWhenExceptionsDisabled(): void
+    {
+        Module::$useExceptions = false;
+
+        $warnings = [];
+
+        set_error_handler(
+            function (
+                int $errno,
+                string $errStr
+            ) use (&$warnings): bool {
+                if ($errno === E_USER_WARNING) {
+                    $warnings[] = $errStr;
+
+                    return true;
+                }
+
+                return false;
+            }
+        );
+
+        try {
+            $module = Module::create("WarningModeTest")
+                ->setLogic(
+                    function (array $inputs): array {
+                        throw new RuntimeException("Logic failed");
+                    }
+                );
+
+            $result = $module->run([]);
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertSame([], $result);
+        $this->assertNotEmpty($warnings);
+        $this->assertStringContainsString("Logic failed", $warnings[0]);
+    }
+
+    /**
+     * @return void
+     * @throws ModuleException
+     */
+    public function testModuleExceptionWarnsAndReturnsEmptyArrayWhenExceptionsDisabled(): void
+    {
+        Module::$useExceptions = false;
+
+        $warnings = [];
+
+        set_error_handler(
+            function (
+                int $errno,
+                string $errStr
+            ) use (&$warnings): bool {
+                if ($errno === E_USER_WARNING) {
+                    $warnings[] = $errStr;
+
+                    return true;
+                }
+
+                return false;
+            }
+        );
+
+        try {
+            $module = Module::create("NoLogicTest");
+
+            $result = $module->run([]);
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertSame([], $result);
+        $this->assertNotEmpty($warnings);
+        $this->assertStringContainsString(
+            "No logic callable is defined",
+            $warnings[0]
+        );
     }
 }

@@ -99,22 +99,30 @@ class ModuleAsyncQueueTest extends TestCase
     {
         $warnings = [];
 
-        set_error_handler(function (int $errno, string $errStr, string $errFile, int $errLine) use (&$warnings): bool {
-            $warnings[] = $errStr;
+        set_error_handler(
+            function (int $errno, string $errStr) use (&$warnings): bool {
+                if ($errno === E_USER_WARNING) {
+                    $warnings[] = $errStr;
 
-            return false; // Don't suppress the error
-        });
+                    return true;
+                }
 
-        // Enqueue a hook that throws an exception
-        ModuleAsyncQueue::enqueue(function () {
-            throw new Exception("hook failure");
-        });
+                return false;
+            }
+        );
 
-        // Run the queue
-        ModuleAsyncQueue::run();
+        try {
+            // Enqueue a hook that throws an exception
+            ModuleAsyncQueue::enqueue(function () {
+                throw new Exception("hook failure");
+            });
 
-        $this->assertNotEmpty($warnings);
-        $this->assertStringContainsString("Async hook failed", $warnings[0]);
+            // Run the queue
+            ModuleAsyncQueue::run();
+        } finally {
+            $this->assertNotEmpty($warnings);
+            $this->assertStringContainsString("Async hook failed", $warnings[0]);
+        }
     }
 
     /**

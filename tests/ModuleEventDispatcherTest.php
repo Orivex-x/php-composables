@@ -19,7 +19,7 @@ class ModuleEventDispatcherTest extends TestCase
         $reflection = new ReflectionClass(ModuleEventDispatcher::class);
         $listenersProp = $reflection->getProperty("listeners");
         $listenersProp->setAccessible(true);
-        $listenersProp->setValue([]);
+        $listenersProp->setValue(null, []);
 
         ModuleEventDispatcher::$throwOnListenerError = false;
     }
@@ -53,17 +53,27 @@ class ModuleEventDispatcherTest extends TestCase
     {
         $warnings = [];
 
-        set_error_handler(function (int $errno, string $errStr, string $errFile, int $errLine) use (&$warnings): bool {
-            $warnings[] = $errStr;
+        set_error_handler(
+            function (int $errno, string $errStr) use (&$warnings): bool {
+                if ($errno === E_USER_WARNING) {
+                    $warnings[] = $errStr;
 
-            return false; // Don't suppress the error
-        });
+                    return true;
+                }
 
-        ModuleEventDispatcher::listen("error.event", function () {
-            throw new Exception("Listener failure");
-        });
+                return false;
+            }
+        );
 
-        ModuleEventDispatcher::dispatch("error.event");
+        try {
+            ModuleEventDispatcher::listen("error.event", function (): void {
+                throw new Exception("Listener failure");
+            });
+
+            ModuleEventDispatcher::dispatch("error.event");
+        } finally {
+            restore_error_handler();
+        }
 
         $this->assertNotEmpty($warnings);
         $this->assertStringContainsString("Event listener error", $warnings[0]);

@@ -108,7 +108,7 @@ jobs:
         run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
       - name: Run Infection
-        run: vendor/bin/infection
+        run: vendor/bin/infection --min-msi=60 --min-covered-msi=60 --threads=2
 
   phpcs:
     name: Code quality (PHPCS)

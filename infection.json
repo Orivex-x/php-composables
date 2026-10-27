@@ -1,5 +1,4 @@
 {
-  "$schema": "./vendor/infection/infection/resources/schema.json",
   "source": {
     "directories": [
       "src"
@@ -8,16 +7,7 @@
   "timeout": 10,
   "threads": 2,
   "testFramework": "phpunit",
-  "minMsi": 60,
-  "minCoveredMsi": 60,
-  "logs": {
-    "junit": "build/logs/infection-junit.xml"
-  },
   "mutators": {
-    "@default": true,
-    "Plus": true,
-    "ReturnValue": true,
-    "ConditionalNegation": true,
-    "MethodCallRemoval": false
+    "@default": true
   }
 }
