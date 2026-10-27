@@ -31,8 +31,12 @@ class ModuleAsyncQueue
      * @return void
      * @throws ModuleEventDispatcherException
      */
-    public static function enqueue(callable $callback, mixed $data = null, ModuleSchema|null $schema = null, string $type = "hook"): void
-    {
+    public static function enqueue(
+        callable $callback,
+        mixed $data = null,
+        ModuleSchema|null $schema = null,
+        string $type = "hook"
+    ): void {
         self::$queue[] = [
             "callback" => $callback,
             "data" => $data,

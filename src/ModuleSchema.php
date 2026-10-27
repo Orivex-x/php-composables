@@ -62,7 +62,8 @@ class ModuleSchema
     /**
      * Validate an input array against the schema.
      *
-     * @param array<string, mixed> $inputs The input data to validate, where keys are input names and values are their respective values.
+     * @param array<string, mixed> $inputs The input data to validate, where keys are input names and
+     * values are their respective values.
      * @throws ModuleSchemaException
      */
     public function validateInputs(array $inputs): void
@@ -75,7 +76,10 @@ class ModuleSchema
             if (!$this->validateType($inputs[$name], $type)) {
                 $actual = gettype($inputs[$name]);
 
-                throw new ModuleSchemaException("Input '$name' expected type '$type', got '$actual'.", $this->moduleName);
+                throw new ModuleSchemaException(
+                    "Input '$name' expected type '$type', got '$actual'.",
+                    $this->moduleName
+                );
             }
         }
     }
@@ -83,7 +87,8 @@ class ModuleSchema
     /**
      * Validate an output array against the schema
      *
-     * @param array<string, mixed> $outputs The output data to validate, where keys are output names and values are their respective values.
+     * @param array<string, mixed> $outputs The output data to validate, where keys are output names and
+     * values are their respective values.
      * @throws ModuleSchemaException
      */
     public function validateOutputs(array $outputs): void
@@ -96,7 +101,10 @@ class ModuleSchema
             if (!$this->validateType($outputs[$name], $type)) {
                 $actual = gettype($outputs[$name]);
 
-                throw new ModuleSchemaException("Output '$name' expected type '$type', got '$actual'.", $this->moduleName);
+                throw new ModuleSchemaException(
+                    "Output '$name' expected type '$type', got '$actual'.",
+                    $this->moduleName
+                );
             }
         }
     }

@@ -41,7 +41,8 @@
     "phpunit/phpunit": "^10",
     "phpstan/phpstan": "^2.1",
     "infection/infection": "^0.31",
-    "squizlabs/php_codesniffer": "^4.0"
+    "squizlabs/php_codesniffer": "^4.0",
+    "friendsofphp/php-cs-fixer": "^3.95"
   },
   "minimum-stability": "stable",
   "prefer-stable": true

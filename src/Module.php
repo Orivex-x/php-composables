@@ -200,7 +200,9 @@ class Module
                 // Branches
                 foreach ($this->branches[$key] ?? [] as $branch) {
                     if ($branch["condition"]($value)) {
-                        $module = is_string($branch["module"]) ? ModuleRegistry::get($branch["module"]) : $branch["module"];
+                        $module = is_string($branch["module"]) ?
+                            ModuleRegistry::get($branch["module"]) :
+                            $branch["module"];
 
                         if (!ModulePipeline::isExecuted($module->name)) {
                             ModulePipeline::markExecuted($module->name);
@@ -208,7 +210,11 @@ class Module
                             $v = $value;
 
                             if (self::$asyncQueue) {
-                                ModuleAsyncQueue::enqueue(fn() => $module->run([$key => $v]), [$key => $v], $module->getSchema());
+                                ModuleAsyncQueue::enqueue(
+                                    fn() => $module->run([$key => $v]),
+                                    [$key => $v],
+                                    $module->getSchema()
+                                );
                             } else {
                                 $module->run([$key => $v]);
                             }
@@ -224,10 +230,16 @@ class Module
 
             return $result;
         } catch (ModuleSchemaException $e) {
-            throw new ModuleException("Schema validation failed: {$e->getMessage()}", $this->name, 0, $e);
+            throw new ModuleException(
+                "Schema validation failed: {$e->getMessage()}",
+                $this->name,
+                0,
+                $e
+            );
         } catch (ModuleException $e) {
             if (!self::$useExceptions) {
                 trigger_error($e->getMessage(), E_USER_WARNING);
+
                 return [];
             }
 
@@ -237,6 +249,7 @@ class Module
 
             if (!self::$useExceptions) {
                 trigger_error($ex->getMessage(), E_USER_WARNING);
+                
                 return [];
             }
 
