@@ -13,10 +13,7 @@ class ModuleAsyncQueueExceptionTest extends TestCase
      */
     public function testConstructorPreservesMessageAndContext(): void
     {
-        $exception = new ModuleAsyncQueueException(
-            "Queue failed",
-            "example-module"
-        );
+        $exception = new ModuleAsyncQueueException("Queue failed", "example-module");
 
         $this->assertSame("Queue failed", $exception->getMessage());
         $this->assertSame("example-module", $exception->getContext());
@@ -37,11 +34,7 @@ class ModuleAsyncQueueExceptionTest extends TestCase
      */
     public function testConstructorPreservesCustomCode(): void
     {
-        $exception = new ModuleAsyncQueueException(
-            "Queue failed",
-            "example-module",
-            42
-        );
+        $exception = new ModuleAsyncQueueException("Queue failed", "example-module", 42);
 
         $this->assertSame(42, $exception->getCode());
     }
@@ -71,5 +64,31 @@ class ModuleAsyncQueueExceptionTest extends TestCase
         $exception = new ModuleAsyncQueueException("Queue failed");
 
         $this->assertNull($exception->getContext());
+    }
+
+    /**
+     * @return void
+     */
+    public function testToStringIncludesQueueContext(): void
+    {
+        $exception = new ModuleAsyncQueueException("Queue failed", "example-module");
+
+        $result = (string) $exception;
+
+        $this->assertStringStartsWith("[Queue Context: example-module] ", $result);
+        $this->assertStringContainsString("ModuleAsyncQueueException: Queue failed", $result);
+    }
+
+    /**
+     * @return void
+     */
+    public function testToStringOmitsPrefixWhenContextIsNull(): void
+    {
+        $exception = new ModuleAsyncQueueException("Queue failed");
+
+        $result = (string) $exception;
+
+        $this->assertStringNotContainsString("[Queue Context:", $result);
+        $this->assertStringContainsString("ModuleAsyncQueueException: Queue failed", $result);
     }
 }

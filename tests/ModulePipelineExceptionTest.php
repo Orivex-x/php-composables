@@ -13,10 +13,7 @@ class ModulePipelineExceptionTest extends TestCase
      */
     public function testConstructorPreservesMessageAndContext(): void
     {
-        $exception = new ModulePipelineException(
-            "Pipeline failed",
-            "example-pipeline"
-        );
+        $exception = new ModulePipelineException("Pipeline failed", "example-pipeline");
 
         $this->assertSame("Pipeline failed", $exception->getMessage());
         $this->assertSame("example-pipeline", $exception->getContext());
@@ -37,11 +34,7 @@ class ModulePipelineExceptionTest extends TestCase
      */
     public function testConstructorPreservesCustomCode(): void
     {
-        $exception = new ModulePipelineException(
-            "Pipeline failed",
-            "example-pipeline",
-            42
-        );
+        $exception = new ModulePipelineException("Pipeline failed", "example-pipeline", 42);
 
         $this->assertSame(42, $exception->getCode());
     }
@@ -71,5 +64,37 @@ class ModulePipelineExceptionTest extends TestCase
         $exception = new ModulePipelineException("Pipeline failed");
 
         $this->assertNull($exception->getContext());
+    }
+
+    /**
+     * @return void
+     */
+    public function testToStringIncludesPipelineContext(): void
+    {
+        $exception = new ModulePipelineException("Pipeline failed", "example-pipeline");
+
+        $result = (string) $exception;
+
+        $this->assertStringStartsWith("[Pipeline Context: example-pipeline] ", $result);
+        $this->assertStringContainsString(
+            "PhpComposables\\Exceptions\\ModulePipelineException: Pipeline failed",
+            $result
+        );
+    }
+
+    /**
+     * @return void
+     */
+    public function testToStringOmitsPrefixWhenContextIsNull(): void
+    {
+        $exception = new ModulePipelineException("Pipeline failed");
+
+        $result = (string) $exception;
+
+        $this->assertStringNotContainsString("[Pipeline Context:", $result);
+        $this->assertStringContainsString(
+            "PhpComposables\\Exceptions\\ModulePipelineException: Pipeline failed",
+            $result
+        );
     }
 }

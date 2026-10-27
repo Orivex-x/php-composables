@@ -13,10 +13,7 @@ class ModuleEventDispatcherExceptionTest extends TestCase
      */
     public function testConstructorPreservesMessageAndEventName(): void
     {
-        $exception = new ModuleEventDispatcherException(
-            "Listener failed",
-            "user.created"
-        );
+        $exception = new ModuleEventDispatcherException("Listener failed", "user.created");
 
         $this->assertSame("Listener failed", $exception->getMessage());
         $this->assertSame("user.created", $exception->getEventName());
@@ -37,11 +34,7 @@ class ModuleEventDispatcherExceptionTest extends TestCase
      */
     public function testConstructorPreservesCustomCode(): void
     {
-        $exception = new ModuleEventDispatcherException(
-            "Listener failed",
-            "user.created",
-            42
-        );
+        $exception = new ModuleEventDispatcherException("Listener failed", "user.created", 42);
 
         $this->assertSame(42, $exception->getCode());
     }
@@ -71,5 +64,31 @@ class ModuleEventDispatcherExceptionTest extends TestCase
         $exception = new ModuleEventDispatcherException("Listener failed");
 
         $this->assertNull($exception->getEventName());
+    }
+
+    /**
+     * @return void
+     */
+    public function testToStringIncludesEventName(): void
+    {
+        $exception = new ModuleEventDispatcherException("Listener failed", "user.created");
+
+        $result = (string) $exception;
+
+        $this->assertStringStartsWith("[Event: user.created] ", $result);
+        $this->assertStringContainsString("ModuleEventDispatcherException: Listener failed", $result);
+    }
+
+    /**
+     * @return void
+     */
+    public function testToStringOmitsPrefixWhenEventNameIsNull(): void
+    {
+        $exception = new ModuleEventDispatcherException("Listener failed");
+
+        $result = (string) $exception;
+
+        $this->assertStringNotContainsString("[Event:", $result);
+        $this->assertStringContainsString("ModuleEventDispatcherException: Listener failed", $result);
     }
 }

@@ -342,4 +342,128 @@ class ModuleTest extends TestCase
             $warnings[0]
         );
     }
+
+    /**
+     * @return void
+     * @throws ModuleException
+     */
+    public function testModuleThrowsExceptionForNonStringOutputKey(): void
+    {
+        $module = Module::create("InvalidOutputKey")
+            ->setLogic(
+                static fn (array $inputs): array => [1 => "invalid"]
+            );
+
+        $this->expectException(ModuleException::class);
+        $this->expectExceptionMessage(
+            "Logic returned an output with a non-string key."
+        );
+
+        $module->run([]);
+    }
+
+    /**
+     * @return void
+     * @throws ModuleException
+     */
+    public function testBranchingResolvesStringTargetThroughRegistry(): void
+    {
+        $targetCalled = false;
+
+        $target = Module::create("RegisteredBranchTarget")
+            ->declareInput("flag", "bool")
+            ->declareOutput("result", "string")
+            ->setLogic(
+                static function (array $inputs) use (&$targetCalled): array {
+                    $targetCalled = true;
+
+                    return ["result" => $inputs["flag"] ? "yes" : "no"];
+                }
+            );
+
+        $target->register();
+
+        $brancher = Module::create("StringBrancher")
+            ->declareInput("flag", "bool")
+            ->declareOutput("flag", "bool")
+            ->setLogic(
+                static fn (array $inputs): array => ["flag" => $inputs["flag"]]
+            )
+            ->branchOutput(
+                "flag",
+                static fn (bool $value): bool => $value === true,
+                "RegisteredBranchTarget"
+            );
+
+        $brancher->run(["flag" => true]);
+
+        $this->assertTrue($targetCalled);
+    }
+
+    /**
+     * @return void
+     * @throws ModuleAsyncQueueException
+     * @throws ModuleEventDispatcherException
+     * @throws ModuleException
+     */
+    public function testAsyncBranchExecutionEnqueuesTargetModule(): void
+    {
+        Module::$asyncQueue = true;
+
+        $targetCalled = false;
+
+        $target = Module::create("AsyncBranchTarget")
+            ->declareInput("flag", "bool")
+            ->declareOutput("result", "string")
+            ->setLogic(
+                static function (array $inputs) use (&$targetCalled): array {
+                    $targetCalled = true;
+
+                    return ["result" => $inputs["flag"] ? "yes" : "no"];
+                }
+            );
+
+        $brancher = Module::create("AsyncBrancher")
+            ->declareInput("flag", "bool")
+            ->declareOutput("flag", "bool")
+            ->setLogic(
+                static fn (array $inputs): array => ["flag" => $inputs["flag"]]
+            )
+            ->branchOutput(
+                "flag",
+                static fn (bool $value): bool => $value === true,
+                $target
+            );
+
+        $brancher->run(["flag" => true]);
+
+        $this->assertFalse($targetCalled);
+        $this->assertNotEmpty(ModuleAsyncQueue::getQueue());
+
+        ModuleAsyncQueue::run();
+
+        $this->assertTrue($targetCalled);
+    }
+
+    /**
+     * @return void
+     */
+    public function testUnexpectedThrowableIsWrappedAndRethrown(): void
+    {
+        $module = Module::create("ThrowableTest")
+            ->setLogic(
+                static function (array $inputs): array {
+                    throw new RuntimeException("Unexpected failure");
+                }
+            );
+
+        try {
+            $module->run([]);
+
+            $this->fail("Expected ModuleException was not thrown.");
+        } catch (ModuleException $exception) {
+            $this->assertSame("Unexpected failure", $exception->getMessage());
+            $this->assertInstanceOf(RuntimeException::class, $exception->getPrevious());
+        }
+    }
 }

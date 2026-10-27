@@ -223,4 +223,96 @@ class ModulePipelineTest extends TestCase
         $this->assertEquals(["A:3", "B:9", "C:7"], $results);
         $this->assertEquals(7, $final["val"]);
     }
+
+    /**
+     * @return void
+     * @throws ModuleAsyncQueueException
+     * @throws ModuleEventDispatcherException
+     * @throws ModuleException
+     * @throws ModulePipelineException
+     */
+    public function testSetModuleVersionReturnsPipelineAndSetsVersion(): void
+    {
+        $module = Module::create("VersionedModule", "1.0.0")
+            ->declareOutput("result", "string")
+            ->setLogic(
+                static fn (array $inputs): array => ["result" => "ok"]
+            );
+
+        $pipeline = ModulePipeline::compose([$module]);
+
+        $returnedPipeline = $pipeline->setModuleVersion("VersionedModule", "2.0.0");
+
+        $this->assertSame($pipeline, $returnedPipeline);
+        $this->assertSame(["result" => "ok"], $pipeline->run([]));
+    }
+
+    /**
+     * @return void
+     * @throws ModuleAsyncQueueException
+     * @throws ModuleEventDispatcherException
+     * @throws ModuleException
+     */
+    public function testMissingDependencyIsWrappedInPipelineException(): void
+    {
+        $module = Module::create("ModuleWithMissingDependency")
+            ->declareDependency("DoesNotExist")
+            ->declareOutput("result", "string")
+            ->setLogic(
+                static fn (array $inputs): array => ["result" => "ok"]
+            );
+
+        $pipeline = ModulePipeline::compose([$module]);
+
+        try {
+            $pipeline->run([]);
+
+            $this->fail("Expected ModulePipelineException was not thrown.");
+        } catch (ModulePipelineException $exception) {
+            $this->assertSame("Failed to resolve pipeline execution order.", $exception->getMessage());
+            $this->assertInstanceOf(ModulePipelineException::class, $exception->getPrevious());
+
+            $this->assertSame(
+                "Module 'DoesNotExist' not found in pipeline modules.",
+                $exception->getPrevious()->getMessage()
+            );
+        }
+    }
+
+    /**
+     * @return void
+     * @throws ModuleAsyncQueueException
+     * @throws ModuleEventDispatcherException
+     * @throws ModuleException
+     * @throws ModulePipelineException
+     */
+    public function testSkipsModuleAlreadyMarkedAsExecuted(): void
+    {
+        $secondModule = Module::create("SecondModule")
+            ->declareInput("value", "int")
+            ->declareOutput("result", "int")
+            ->setLogic(
+                static fn (array $inputs): array => [
+                    "result" => $inputs["value"] * 2,
+                ]
+            );
+
+        $firstModule = Module::create("FirstModule")
+            ->declareInput("value", "int")
+            ->declareOutput("value", "int")
+            ->setLogic(
+                static function (array $inputs): array {
+                    ModulePipeline::markExecuted("SecondModule");
+
+                    return ["value" => $inputs["value"] + 1];
+                }
+            );
+
+        $pipeline = ModulePipeline::compose([$firstModule, $secondModule]);
+
+        $result = $pipeline->run(["value" => 5]);
+
+        $this->assertSame(6, $result["value"]);
+        $this->assertArrayNotHasKey("result", $result);
+    }
 }

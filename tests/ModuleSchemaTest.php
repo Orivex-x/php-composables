@@ -127,4 +127,77 @@ class ModuleSchemaTest extends TestCase
         $schema->validateInputs($inputs);
         $schema->validateOutputs($outputs);
     }
+
+    /**
+     * @return void
+     * @throws ModuleSchemaException
+     */
+    public function testValidateFloatInputAndOutput(): void
+    {
+        $schema = new ModuleSchema("FloatTest");
+        $schema->declareInput("price", "float")
+            ->declareOutput("total", "float");
+
+        $schema->validateInputs(["price" => 19.99]);
+        $schema->validateOutputs(["total" => 39.98]);
+
+        $this->expectException(ModuleSchemaException::class);
+        $schema->validateInputs(["price" => 20]);
+    }
+
+    /**
+     * @return void
+     * @throws ModuleSchemaException
+     */
+    public function testValidateDoubleInputAndOutput(): void
+    {
+        $schema = new ModuleSchema("DoubleTest");
+        $schema->declareInput("value", "double")
+            ->declareOutput("result", "double");
+
+        $schema->validateInputs(["value" => 3.14]);
+        $schema->validateOutputs(["result" => 6.28]);
+
+        $this->expectException(ModuleSchemaException::class);
+        $schema->validateOutputs(["result" => 6]);
+    }
+
+    /**
+     * @return void
+     * @throws ModuleSchemaException
+     */
+    public function testValidateArrayInputAndOutput(): void
+    {
+        $schema = new ModuleSchema("ArrayTest");
+        $schema->declareInput("items", "array")
+            ->declareOutput("result", "array");
+
+        $schema->validateInputs(["items" => [1, 2, 3]]);
+        $schema->validateOutputs(["result" => ["success" => true]]);
+
+        $this->expectException(ModuleSchemaException::class);
+        $schema->validateInputs(["items" => "not an array"]);
+    }
+
+    /**
+     * @return void
+     * @throws ModuleSchemaException
+     */
+    public function testValidateCallableInputAndOutput(): void
+    {
+        $schema = new ModuleSchema("CallableTest");
+        $schema->declareInput("handler", "callable")
+            ->declareOutput("callback", "callable");
+
+        $handler = static fn (): string => "hello";
+        $callback = static function (): string {
+            return "world";
+        };
+
+        $schema->validateInputs(["handler" => $handler]);
+        $schema->validateOutputs(["callback" => $callback]);
+
+        $this->expectException(ModuleSchemaException::class);
+        $schema->validateInputs(["handler" => "not callable"]);
+    }
 }

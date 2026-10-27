@@ -96,4 +96,20 @@ class ModuleEventDispatcherTest extends TestCase
 
         ModuleEventDispatcher::dispatch("throw.event");
     }
+
+    /**
+     * @return void
+     * @throws ModuleEventDispatcherException
+     */
+    public function testListenThrowsExceptionWhenListenerIsNotCallable(): void
+    {
+        $event = "invalid.listener";
+
+        $this->expectException(ModuleEventDispatcherException::class);
+        $this->expectExceptionMessage(
+            "Listener not callable for event '$event'."
+        );
+
+        ModuleEventDispatcher::listen($event, "not-a-callable");
+    }
 }

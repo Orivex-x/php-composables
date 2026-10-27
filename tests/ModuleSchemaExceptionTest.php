@@ -13,15 +13,9 @@ class ModuleSchemaExceptionTest extends TestCase
      */
     public function testConstructorPreservesMessageAndModuleName(): void
     {
-        $exception = new ModuleSchemaException(
-            "Schema validation failed",
-            "ExampleModule"
-        );
+        $exception = new ModuleSchemaException("Schema validation failed", "ExampleModule");
 
-        $this->assertSame(
-            "Schema validation failed",
-            $exception->getMessage()
-        );
+        $this->assertSame("Schema validation failed", $exception->getMessage());
         $this->assertSame("ExampleModule", $exception->getModuleName());
     }
 
@@ -74,5 +68,37 @@ class ModuleSchemaExceptionTest extends TestCase
         $exception = new ModuleSchemaException("Schema validation failed");
 
         $this->assertNull($exception->getModuleName());
+    }
+
+    /**
+     * @return void
+     */
+    public function testToStringIncludesModuleName(): void
+    {
+        $exception = new ModuleSchemaException("Schema validation failed", "ExampleModule");
+
+        $result = (string) $exception;
+
+        $this->assertStringStartsWith("[Module: ExampleModule] ", $result);
+        $this->assertStringContainsString(
+            "PhpComposables\\Exceptions\\ModuleSchemaException: Schema validation failed",
+            $result
+        );
+    }
+
+    /**
+     * @return void
+     */
+    public function testToStringOmitsPrefixWhenModuleNameIsNull(): void
+    {
+        $exception = new ModuleSchemaException("Schema validation failed");
+
+        $result = (string) $exception;
+
+        $this->assertStringNotContainsString("[Module:", $result);
+        $this->assertStringContainsString(
+            "PhpComposables\\Exceptions\\ModuleSchemaException: Schema validation failed",
+            $result
+        );
     }
 }

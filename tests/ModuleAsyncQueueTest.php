@@ -140,4 +140,59 @@ class ModuleAsyncQueueTest extends TestCase
 
         $this->assertEmpty(ModuleAsyncQueue::getQueue());
     }
+
+    /**
+     * @return void
+     * @throws ModuleAsyncQueueException
+     * @throws ModuleEventDispatcherException
+     */
+    public function testRunReturnsEarlyWhenQueueIsAlreadyRunning(): void
+    {
+        $nestedRunReturned = false;
+
+        ModuleAsyncQueue::enqueue(
+            function () use (&$nestedRunReturned): void {
+                // This nested call should return immediately because the queue is running.
+                ModuleAsyncQueue::run();
+                $nestedRunReturned = true;
+            }
+        );
+
+        ModuleAsyncQueue::run();
+
+        $this->assertTrue($nestedRunReturned);
+        $this->assertEmpty(ModuleAsyncQueue::getQueue());
+    }
+
+    /**
+     * @return void
+     * @throws ModuleEventDispatcherException
+     */
+    public function testModuleExecutionFailsWithNonStringOutputKey(): void
+    {
+        $schema = new ModuleSchema("InvalidKeyModule");
+        $schema->declareOutput("val", "string");
+
+        ModuleAsyncQueue::enqueue(
+            static function (array $data): void {
+                // The queue validates the data before executing this callback.
+            },
+            [1 => "invalid"],
+            $schema,
+            "module"
+        );
+
+        try {
+            ModuleAsyncQueue::run();
+            $this->fail("Expected ModuleAsyncQueueException was not thrown.");
+        } catch (ModuleAsyncQueueException $exception) {
+            $this->assertSame("Async queue execution failed.", $exception->getMessage());
+            $this->assertInstanceOf(ModuleAsyncQueueException::class, $exception->getPrevious());
+
+            $this->assertSame(
+                "Async module output contains a non-string key.",
+                $exception->getPrevious()->getMessage()
+            );
+        }
+    }
 }

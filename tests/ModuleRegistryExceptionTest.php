@@ -72,4 +72,36 @@ class ModuleRegistryExceptionTest extends TestCase
 
         $this->assertNull($exception->getModuleName());
     }
+
+    /**
+     * @return void
+     */
+    public function testToStringIncludesModuleName(): void
+    {
+        $exception = new ModuleRegistryException("Registry failed", "ExampleModule");
+
+        $result = (string) $exception;
+
+        $this->assertStringStartsWith("[Module: ExampleModule] ", $result);
+        $this->assertStringContainsString(
+            "PhpComposables\\Exceptions\\ModuleRegistryException: Registry failed",
+            $result
+        );
+    }
+
+    /**
+     * @return void
+     */
+    public function testToStringOmitsPrefixWhenModuleNameIsNull(): void
+    {
+        $exception = new ModuleRegistryException("Registry failed");
+
+        $result = (string) $exception;
+
+        $this->assertStringNotContainsString("[Module:", $result);
+        $this->assertStringContainsString(
+            "PhpComposables\\Exceptions\\ModuleRegistryException: Registry failed",
+            $result
+        );
+    }
 }

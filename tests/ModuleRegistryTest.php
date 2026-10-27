@@ -96,4 +96,34 @@ class ModuleRegistryTest extends TestCase
         $this->assertSame($userModule, ModuleRegistry::get("User"));
         $this->assertSame($authModule, ModuleRegistry::get("Auth"));
     }
+
+    /**
+     * @return void
+     */
+    public function testClearRemovesAllRegisteredModules(): void
+    {
+        $userModule = Module::create("User");
+        $authModule = Module::create("Auth");
+
+        ModuleRegistry::register($userModule);
+        ModuleRegistry::register($authModule);
+
+        ModuleRegistry::clear();
+
+        try {
+            ModuleRegistry::get("User");
+
+            $this->fail("Expected ModuleRegistryException for cleared User module.");
+        } catch (ModuleRegistryException $exception) {
+            $this->assertStringContainsString("not found in registry", $exception->getMessage());
+        }
+
+        try {
+            ModuleRegistry::get("Auth");
+
+            $this->fail("Expected ModuleRegistryException for cleared Auth module.");
+        } catch (ModuleRegistryException $exception) {
+            $this->assertStringContainsString("not found in registry", $exception->getMessage());
+        }
+    }
 }
