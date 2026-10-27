@@ -21,8 +21,12 @@ class ModuleException extends Exception
      * @param int $code
      * @param Throwable|null $previous
      */
-    public function __construct(string $message, string|null $moduleName = null, int $code = 0, Throwable|null $previous = null)
-    {
+    public function __construct(
+        string $message,
+        string|null $moduleName = null,
+        int $code = 0,
+        Throwable|null $previous = null
+    ) {
         $this->moduleName = $moduleName;
 
         parent::__construct($message, $code, $previous);

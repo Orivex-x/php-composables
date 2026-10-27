@@ -18,8 +18,12 @@ class ModuleEventDispatcherException extends Exception
      * @param int $code
      * @param Throwable|null $previous
      */
-    public function __construct(string $message, string|null $eventName = null, int $code = 0, Throwable|null $previous = null)
-    {
+    public function __construct(
+        string $message,
+        string|null $eventName = null,
+        int $code = 0,
+        Throwable|null $previous = null
+    ) {
         $this->eventName = $eventName;
 
         parent::__construct($message, $code, $previous);

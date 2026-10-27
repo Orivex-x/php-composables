@@ -1,22 +1,23 @@
 {
+  "$schema": "./vendor/infection/infection/resources/schema.json",
   "source": {
     "directories": [
       "src"
     ]
   },
-  "tests": {
-    "directory": "tests"
-  },
   "timeout": 10,
-  "log-junit": "build/logs/infection-junit.xml",
-  "min-msi": 60,
-  "min-covered-msi": 60,
-  "mutators": {
-    "PlusMinus": true,
-    "ReturnValues": true,
-    "NegateConditionals": true,
-    "RemoveMethodCall": false
-  },
   "threads": 2,
-  "project": "php-composables"
+  "testFramework": "phpunit",
+  "minMsi": 60,
+  "minCoveredMsi": 60,
+  "logs": {
+    "junit": "build/logs/infection-junit.xml"
+  },
+  "mutators": {
+    "@default": true,
+    "Plus": true,
+    "ReturnValue": true,
+    "ConditionalNegation": true,
+    "MethodCallRemoval": false
+  }
 }
