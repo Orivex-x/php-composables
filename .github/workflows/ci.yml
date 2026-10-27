@@ -2,25 +2,26 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
   workflow_dispatch:
 
 permissions:
   contents: read
-  packages: write
-  checks: write
+  id-token: write
 
 jobs:
   tests:
-    name: Tests (PHP)
+    name: Tests (PHP ${{ matrix.php }}, coverage=${{ matrix.coverage }})
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
-        php: [ "8.2", "8.3", "8.4" ]
+        php: ["8.2", "8.3", "8.4"]
         coverage: [true, false]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,16 +32,16 @@ jobs:
           php-version: ${{ matrix.php }}
           extensions: mbstring, json, pcntl
           tools: composer:v2
-          coverage: ${{ matrix.coverage }}
+          coverage: ${{ matrix.coverage && 'xdebug' || 'none' }}
 
       - name: Validate composer.json
         run: composer validate --no-check-publish
 
-      - name: Get composer cache directory
+      - name: Get Composer cache directory
         id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
-      - name: Cache composer
+      - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
@@ -53,34 +54,42 @@ jobs:
         run: composer install --no-progress --prefer-dist --no-interaction
 
       - name: Static analysis (PHPStan)
-        run: |
-          composer require --dev phpstan/phpstan:^1.10 || true
-          vendor/bin/phpstan analyse src tests --level=max || true
+        run: vendor/bin/phpstan analyse src tests --level=max
 
       - name: Run tests
+        if: ${{ matrix.coverage == false }}
+        run: composer test
+
+      - name: Generate coverage report
+        if: ${{ matrix.coverage == true }}
         env:
           XDEBUG_MODE: coverage
-        run: |
-          if [ "${{ matrix.coverage }}" = "true" ]; then
-            vendor/bin/phpunit --configuration phpunit.xml --coverage-clover build/logs/clover.xml --testdox
-          else
-            vendor/bin/phpunit --configuration phpunit.xml --testdox
-          fi
+        run: composer test-coverage
 
-      - name: Upload coverage reports to Codecov
+      - name: Verify coverage report
+        if: ${{ matrix.coverage == true }}
+        run: |
+          if [ ! -s coverage.xml ]; then
+            echo "Error: coverage.xml was not generated or is empty."
+            exit 1
+          fi
+          
+          echo "Coverage report generated successfully."
+          ls -lh coverage.xml
+
+      - name: Upload coverage to Codecov
         if: ${{ matrix.coverage == true }}
         uses: codecov/codecov-action@v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: build/logs/clover.xml
-          fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
+          files: ./coverage.xml
+          fail_ci_if_error: true
 
   mutation:
     name: Mutation testing (Infection)
     runs-on: ubuntu-latest
     needs: tests
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -88,34 +97,36 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: "8.3"
+          extensions: mbstring, json, pcntl
           tools: composer:v2
 
-      - name: Install dev deps
+      - name: Install dependencies
         run: composer install --no-progress --prefer-dist --no-interaction
 
-      - name: Run php-cs-fixer (style)
-        run: |
-          composer require --dev friendsofphp/php-cs-fixer || true
-          vendor/bin/php-cs-fixer fix --dry-run --diff || true
+      - name: Run PHP-CS-Fixer
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
-      - name: Run Infection (mutation)
-        run: |
-          composer require --dev infection/infection:^0.31 || true
-          vendor/bin/infection --min-msi=60 --threads=2 || true
+      - name: Run Infection
+        run: vendor/bin/infection --min-msi=60 --threads=2
 
   phpcs:
     name: Code quality (PHPCS)
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
-      - name: Install dev deps
+          php-version: "8.3"
+          extensions: mbstring, json, pcntl
+          tools: composer:v2
+
+      - name: Install dependencies
         run: composer install --no-progress --prefer-dist --no-interaction
+
       - name: Run PHPCS
-        run: |
-          composer require --dev squizlabs/php_codesniffer || true
-          vendor/bin/phpcs --standard=PSR12 src tests || true
+        run: vendor/bin/phpcs --standard=PSR12 src tests
