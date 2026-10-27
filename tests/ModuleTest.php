@@ -410,16 +410,18 @@ class ModuleTest extends TestCase
     {
         Module::$asyncQueue = true;
 
-        $targetCalled = false;
+        $targetCalls = [];
 
         $target = Module::create("AsyncBranchTarget")
             ->declareInput("flag", "bool")
             ->declareOutput("result", "string")
             ->setLogic(
-                static function (array $inputs) use (&$targetCalled): array {
-                    $targetCalled = true;
+                static function (array $inputs) use (&$targetCalls): array {
+                    $targetCalls[] = $inputs["flag"];
 
-                    return ["result" => $inputs["flag"] ? "yes" : "no"];
+                    return [
+                        "result" => $inputs["flag"] ? "yes" : "no",
+                    ];
                 }
             );
 
@@ -427,7 +429,9 @@ class ModuleTest extends TestCase
             ->declareInput("flag", "bool")
             ->declareOutput("flag", "bool")
             ->setLogic(
-                static fn (array $inputs): array => ["flag" => $inputs["flag"]]
+                static fn (array $inputs): array => [
+                    "flag" => $inputs["flag"],
+                ]
             )
             ->branchOutput(
                 "flag",
@@ -437,12 +441,14 @@ class ModuleTest extends TestCase
 
         $brancher->run(["flag" => true]);
 
-        $this->assertFalse($targetCalled);
+        // The target should not have executed before the queue is processed.
+        $this->assertSame([], $targetCalls);
         $this->assertNotEmpty(ModuleAsyncQueue::getQueue());
 
         ModuleAsyncQueue::run();
 
-        $this->assertTrue($targetCalled);
+        // The target should execute when the queue is processed.
+        $this->assertSame([true], $targetCalls);
     }
 
     /**

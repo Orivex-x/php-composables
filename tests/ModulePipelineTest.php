@@ -2,6 +2,7 @@
 
 namespace PhpComposables\Tests;
 
+use InvalidArgumentException;
 use PhpComposables\Exceptions\ModuleAsyncQueueException;
 use PhpComposables\Exceptions\ModuleEventDispatcherException;
 use PhpComposables\Exceptions\ModuleException;
@@ -292,9 +293,17 @@ class ModulePipelineTest extends TestCase
             ->declareInput("value", "int")
             ->declareOutput("result", "int")
             ->setLogic(
-                static fn (array $inputs): array => [
-                    "result" => $inputs["value"] * 2,
-                ]
+                static function (array $inputs): array {
+                    $value = $inputs["value"] ?? null;
+
+                    if (!is_int($value)) {
+                        throw new InvalidArgumentException(
+                            "Expected value to be an integer."
+                        );
+                    }
+
+                    return ["result" => $value * 2];
+                }
             );
 
         $firstModule = Module::create("FirstModule")
@@ -302,13 +311,24 @@ class ModulePipelineTest extends TestCase
             ->declareOutput("value", "int")
             ->setLogic(
                 static function (array $inputs): array {
+                    $value = $inputs["value"] ?? null;
+
+                    if (!is_int($value)) {
+                        throw new InvalidArgumentException(
+                            "Expected value to be an integer."
+                        );
+                    }
+
                     ModulePipeline::markExecuted("SecondModule");
 
-                    return ["value" => $inputs["value"] + 1];
+                    return ["value" => $value + 1];
                 }
             );
 
-        $pipeline = ModulePipeline::compose([$firstModule, $secondModule]);
+        $pipeline = ModulePipeline::compose([
+            $firstModule,
+            $secondModule,
+        ]);
 
         $result = $pipeline->run(["value" => 5]);
 
