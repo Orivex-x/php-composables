@@ -191,7 +191,7 @@ class Module
                     $v = $value;
 
                     if (self::$asyncQueue) {
-                        ModuleAsyncQueue::enqueue(fn() => $hook($v), [$key => $v], $this->schema);
+                        ModuleAsyncQueue::enqueue(fn () => $hook($v), [$key => $v], $this->schema);
                     } else {
                         $hook($v);
                     }
@@ -211,7 +211,7 @@ class Module
 
                             if (self::$asyncQueue) {
                                 ModuleAsyncQueue::enqueue(
-                                    fn() => $module->run([$key => $v]),
+                                    fn () => $module->run([$key => $v]),
                                     [$key => $v],
                                     $module->getSchema()
                                 );
@@ -249,7 +249,7 @@ class Module
 
             if (!self::$useExceptions) {
                 trigger_error($ex->getMessage(), E_USER_WARNING);
-                
+
                 return [];
             }
 

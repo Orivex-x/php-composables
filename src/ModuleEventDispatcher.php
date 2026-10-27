@@ -13,10 +13,10 @@ class ModuleEventDispatcher
     /** @var bool $throwOnListenerError Determines whether to throw errors on listener failures */
     public static bool $throwOnListenerError = false;
 
-    public final const EVENT_MODULE_RUN_START = "module.run.start";
-    public final const EVENT_MODULE_RUN_END = "module.run.end";
-    public final const EVENT_QUEUE_ENQUEUE = "queue.enqueue";
-    public final const EVENT_QUEUE_RUN = "queue.run";
+    final public const EVENT_MODULE_RUN_START = "module.run.start";
+    final public const EVENT_MODULE_RUN_END = "module.run.end";
+    final public const EVENT_QUEUE_ENQUEUE = "queue.enqueue";
+    final public const EVENT_QUEUE_RUN = "queue.run";
 
     /**
      * Listen for an event

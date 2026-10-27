@@ -100,7 +100,7 @@ class ModuleTest extends TestCase
                     return ["flag" => $inputs["flag"]];
                 }
             )
-            ->branchOutput("flag", fn($v) => $v === true, $target);
+            ->branchOutput("flag", fn ($v) => $v === true, $target);
 
         $branchModule->run(["flag" => true]);
 
@@ -148,7 +148,7 @@ class ModuleTest extends TestCase
         $module = Module::create("BadLogic")
             ->declareInput("input", "string")
             ->declareOutput("output", "string")
-            ->setLogic(fn($inputs) => "not-an-array");
+            ->setLogic(fn ($inputs) => "not-an-array");
 
         $module->run(["input" => "test"]);
     }
@@ -164,7 +164,7 @@ class ModuleTest extends TestCase
         $module = Module::create("SchemaFail")
             ->declareInput("num", "int")
             ->declareOutput("result", "string")
-            ->setLogic(fn($inputs) => ["result" => 123]);
+            ->setLogic(fn ($inputs) => ["result" => 123]);
 
         $module->run(["num" => 5]);
     }
