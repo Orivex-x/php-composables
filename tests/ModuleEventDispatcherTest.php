@@ -31,9 +31,13 @@ class ModuleEventDispatcherTest extends TestCase
     {
         $called = false;
 
-        ModuleEventDispatcher::listen("test.event", function($payload) use (&$called) {
-            $called = $payload["flag"] ?? false;
-        });
+        ModuleEventDispatcher::listen(
+            "test.event",
+            /** @param array{flag?: bool} $payload */
+            function (array $payload) use (&$called): void {
+                $called = $payload["flag"] ?? false;
+            }
+        );
 
         ModuleEventDispatcher::dispatch("test.event", ["flag" => true]);
 

@@ -33,7 +33,12 @@ class ModuleTest extends TestCase
         $userModule = Module::create("User")
             ->declareInput("name", "string")
             ->declareOutput("greeting", "string")
-            ->setLogic(fn($inputs) => ["greeting" => "Hello, {$inputs['name']}!"]);
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{name: string} $inputs */
+                    return ["greeting" => "Hello, {$inputs['name']}!"];
+                }
+            );
 
         $result = $userModule->run(["name" => "Bob"]);
 
@@ -52,8 +57,13 @@ class ModuleTest extends TestCase
         $module = Module::create("HookTest")
             ->declareInput("value", "int")
             ->declareOutput("value", "int")
-            ->setLogic(fn($inputs) => ["value" => $inputs["value"] + 1])
-            ->onOutput("value", function($v) use (&$hookCalled) {
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{value: int} $inputs */
+                    return ["value" => $inputs["value"] + 1];
+                }
+            )
+            ->onOutput("value", function(int $v) use (&$hookCalled) {
                 $hookCalled = $v;
             });
 
@@ -73,14 +83,22 @@ class ModuleTest extends TestCase
         $target = Module::create("Target")
             ->declareInput("flag", "bool")
             ->declareOutput("result", "string")
-            ->setLogic(function($inputs) use (&$targetCalled) {
-                return ["result" => $targetCalled = $inputs["flag"] ? "yes" : "no"];
-            });
+            ->setLogic(
+                function (array $inputs) use (&$targetCalled): array {
+                    /** @var array{flag: bool} $inputs */
+                    return ["result" => $targetCalled = $inputs["flag"] ? "yes" : "no"];
+                }
+            );
 
         $branchModule = Module::create("Brancher")
             ->declareInput("flag", "bool")
             ->declareOutput("flag", "bool")
-            ->setLogic(fn($inputs) => ["flag" => $inputs["flag"]])
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{flag: bool} $inputs */
+                    return ["flag" => $inputs["flag"]];
+                }
+            )
             ->branchOutput("flag", fn($v) => $v === true, $target);
 
         $branchModule->run(["flag" => true]);
@@ -102,8 +120,13 @@ class ModuleTest extends TestCase
         $module = Module::create("AsyncHook")
             ->declareInput("num", "int")
             ->declareOutput("num", "int")
-            ->setLogic(fn($inputs) => ["num" => $inputs["num"] * 2])
-            ->onOutput("num", function($v) use (&$hookExecuted) {
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{num: int} $inputs */
+                    return ["num" => $inputs["num"] * 2];
+                }
+            )
+            ->onOutput("num", function(int $v) use (&$hookExecuted) {
                 $hookExecuted = $v;
             });
 
@@ -149,6 +172,7 @@ class ModuleTest extends TestCase
      * @return void
      * @throws ModuleAsyncQueueException
      * @throws ModuleEventDispatcherException
+     * @throws ModuleException
      * @throws ModulePipelineException
      */
     public function testPipelineExecutesModulesInOrder(): void
@@ -159,8 +183,13 @@ class ModuleTest extends TestCase
         $mod1 = Module::create("M1")
             ->declareInput("val", "int")
             ->declareOutput("val", "int")
-            ->setLogic(fn($inputs) => ["val" => $inputs["val"] + 1])
-            ->onOutput("val", function($v) use (&$results) {
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{val: int} $inputs */
+                    return ["val" => $inputs["val"] + 1];
+                }
+            )
+            ->onOutput("val", function(int $v) use (&$results) {
                 $results[] = "M1:$v";
             });
 
@@ -168,8 +197,13 @@ class ModuleTest extends TestCase
             ->declareInput("val", "int")
             ->declareOutput("val", "int")
             ->declareDependency("M1")
-            ->setLogic(fn($inputs) => ["val" => $inputs["val"] * 2])
-            ->onOutput("val", function($v) use (&$results) {
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{val: int} $inputs */
+                    return ["val" => $inputs["val"] * 2];
+                }
+            )
+            ->onOutput("val", function(int $v) use (&$results) {
                 $results[] = "M2:$v";
             });
 

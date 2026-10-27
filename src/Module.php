@@ -12,7 +12,7 @@ class Module {
     /** @var string[] $dependencies */
     public array $dependencies = [];
 
-    /** @var callable|null $logic */
+    /** @var callable(array<string, mixed>): mixed|null */
     private $logic = null;
 
     /** @var callable[][] $hooks */
@@ -164,6 +164,13 @@ class Module {
                 throw new ModuleException("Logic returned non-array type: " . gettype($result), $this->name);
             }
 
+            foreach (array_keys($result) as $key) {
+                if (!is_string($key)) {
+                    throw new ModuleException("Logic returned an output with a non-string key.", $this->name);
+                }
+            }
+
+            /** @var array<string, mixed> $result */
             $this->schema->validateOutputs($result);
 
             foreach ($result as $key => $value) {
@@ -185,6 +192,7 @@ class Module {
 
                         if (!ModulePipeline::isExecuted($module->name)) {
                             ModulePipeline::markExecuted($module->name);
+
                             $v = $value;
 
                             if (self::$asyncQueue) {

@@ -77,8 +77,24 @@ class ModuleAsyncQueue {
                     // Modules are strict
                     if ($item["type"] === "module") {
                         // Validate outputs if schema exists and strict mode
-                        if ($item["schema"] instanceof ModuleSchema && is_array($item["data"]) && Module::$asyncValidationStrict) {
-                            $item["schema"]->validateOutputs($item["data"]);
+                        if (
+                            $item["schema"] instanceof ModuleSchema
+                            && is_array($item["data"])
+                            && Module::$asyncValidationStrict
+                        ) {
+                            $data = $item["data"];
+
+                            foreach (array_keys($data) as $key) {
+                                if (!is_string($key)) {
+                                    throw new ModuleAsyncQueueException(
+                                        "Async module output contains a non-string key.",
+                                        null
+                                    );
+                                }
+                            }
+
+                            /** @var array<string, mixed> $data */
+                            $item["schema"]->validateOutputs($data);
                         }
 
                         // Execute the module callback

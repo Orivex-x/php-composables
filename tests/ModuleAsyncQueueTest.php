@@ -54,7 +54,8 @@ class ModuleAsyncQueueTest extends TestCase
 
         $result = 0;
 
-        $callback = function($data) use (&$result) {
+        /** @param array{val: int} $data */
+        $callback = function (array $data) use (&$result): void {
             $result = $data["val"];
         };
 

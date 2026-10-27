@@ -3,6 +3,7 @@ namespace PhpComposables\Tests;
 
 use PhpComposables\Exceptions\ModuleAsyncQueueException;
 use PhpComposables\Exceptions\ModuleEventDispatcherException;
+use PhpComposables\Exceptions\ModuleException;
 use PhpComposables\Module;
 use PhpComposables\ModulePipeline;
 use PhpComposables\ModuleAsyncQueue;
@@ -25,16 +26,22 @@ class ModulePipelineTest extends TestCase
 
     /**
      * @return void
-     * @throws ModulePipelineException
      * @throws ModuleAsyncQueueException
      * @throws ModuleEventDispatcherException
+     * @throws ModuleException
+     * @throws ModulePipelineException
      */
     public function testPipelineRuns(): void
     {
         $userModule = Module::create("User")
             ->declareInput("name", "string")
             ->declareOutput("greeting", "string")
-            ->setLogic(fn($inputs) => ["greeting" => "Hello, {$inputs['name']}!"])
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{name: string} $inputs */
+                    return ["greeting" => "Hello, {$inputs['name']}!"];
+                }
+            )
             ->register();
 
         $pipeline = ModulePipeline::compose([$userModule])->setAsync(false);
@@ -48,6 +55,7 @@ class ModulePipelineTest extends TestCase
      * @throws ModuleAsyncQueueException
      * @throws ModuleEventDispatcherException
      * @throws ModulePipelineException
+     * @throws ModuleException
      */
     public function testPipelineExecutesModulesInDependencyOrder(): void
     {
@@ -58,8 +66,13 @@ class ModulePipelineTest extends TestCase
         $mod1 = Module::create("M1")
             ->declareInput("val", "int")
             ->declareOutput("val", "int")
-            ->setLogic(fn($inputs) => ["val" => $inputs["val"] + 1])
-            ->onOutput("val", function($v) use (&$results) {
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{val: int} $inputs */
+                    return ["val" => $inputs["val"] + 1];
+                }
+            )
+            ->onOutput("val", function(int $v) use (&$results) {
                 $results[] = "M1:$v";
             })
             ->register();
@@ -68,8 +81,13 @@ class ModulePipelineTest extends TestCase
             ->declareInput("val", "int")
             ->declareOutput("val", "int")
             ->declareDependency("M1")
-            ->setLogic(fn($inputs) => ["val" => $inputs["val"] * 2])
-            ->onOutput("val", function($v) use (&$results) {
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{val: int} $inputs */
+                    return ["val" => $inputs["val"] * 2];
+                }
+            )
+            ->onOutput("val", function(int $v) use (&$results) {
                 $results[] = "M2:$v";
             })
             ->register();
@@ -85,6 +103,7 @@ class ModulePipelineTest extends TestCase
      * @return void
      * @throws ModuleAsyncQueueException
      * @throws ModuleEventDispatcherException
+     * @throws ModuleException
      * @throws ModulePipelineException
      */
     public function testPipelineWithAsyncHooks(): void
@@ -95,7 +114,12 @@ class ModulePipelineTest extends TestCase
         $mod = Module::create("AsyncMod")
             ->declareInput("num", "int")
             ->declareOutput("num", "int")
-            ->setLogic(fn($inputs) => ["num" => $inputs["num"] + 1])
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{num: int} $inputs */
+                    return ["num" => $inputs["num"] + 1];
+                }
+            )
             ->onOutput("num", function($v) use (&$hookResult) {
                 $hookResult[] = $v;
             })
@@ -114,6 +138,7 @@ class ModulePipelineTest extends TestCase
      * @return void
      * @throws ModuleAsyncQueueException
      * @throws ModuleEventDispatcherException
+     * @throws ModuleException
      * @throws ModulePipelineException
      */
     public function testPipelineThrowsOnMissingInput(): void
@@ -123,7 +148,12 @@ class ModulePipelineTest extends TestCase
         $mod = Module::create("RequiredInput")
             ->declareInput("required", "string")
             ->declareOutput("out", "string")
-            ->setLogic(fn($inputs) => ["out" => strtoupper($inputs["required"])])
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{required: string} $inputs */
+                    return ["out" => strtoupper($inputs["required"])];
+                }
+            )
             ->register();
 
         $pipeline = ModulePipeline::compose([$mod])->setAsync(false);
@@ -134,6 +164,7 @@ class ModulePipelineTest extends TestCase
      * @return void
      * @throws ModuleAsyncQueueException
      * @throws ModuleEventDispatcherException
+     * @throws ModuleException
      * @throws ModulePipelineException
      */
     public function testPipelineExecutesMultipleModulesWithMixedDependencies(): void
@@ -144,8 +175,13 @@ class ModulePipelineTest extends TestCase
         $a = Module::create("A")
             ->declareInput("val", "int")
             ->declareOutput("val", "int")
-            ->setLogic(fn($inputs) => ["val" => $inputs["val"] + 1])
-            ->onOutput("val", function($v) use (&$results) {
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{val: int} $inputs */
+                    return ["val" => $inputs["val"] + 1];
+                }
+            )
+            ->onOutput("val", function(int $v) use (&$results) {
                 $results[] = "A:$v";
             })
             ->register();
@@ -154,8 +190,13 @@ class ModulePipelineTest extends TestCase
             ->declareInput("val", "int")
             ->declareOutput("val", "int")
             ->declareDependency("A")
-            ->setLogic(fn($inputs) => ["val" => $inputs["val"] * 3])
-            ->onOutput("val", function($v) use (&$results) {
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{val: int} $inputs */
+                    return ["val" => $inputs["val"] * 3];
+                }
+            )
+            ->onOutput("val", function(int $v) use (&$results) {
                 $results[] = "B:$v";
             })
             ->register();
@@ -164,8 +205,13 @@ class ModulePipelineTest extends TestCase
             ->declareInput("val", "int")
             ->declareOutput("val", "int")
             ->declareDependency("B")
-            ->setLogic(fn($inputs) => ["val" => $inputs["val"] - 2])
-            ->onOutput("val", function($v) use (&$results) {
+            ->setLogic(
+                function (array $inputs): array {
+                    /** @var array{val: int} $inputs */
+                    return ["val" => $inputs["val"] - 2];
+                }
+            )
+            ->onOutput("val", function(int $v) use (&$results) {
                 $results[] = "C:$v";
             })
             ->register();

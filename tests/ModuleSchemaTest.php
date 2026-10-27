@@ -47,8 +47,6 @@ class ModuleSchemaTest extends TestCase
         // Should not throw exceptions
         $schema->validateInputs($inputs);
         $schema->validateOutputs($outputs);
-
-        $this->assertTrue(true); // if no exception, test passes
     }
 
     /**
@@ -127,7 +125,5 @@ class ModuleSchemaTest extends TestCase
 
         $schema->validateInputs($inputs);
         $schema->validateOutputs($outputs);
-
-        $this->assertTrue(true);
     }
 }
